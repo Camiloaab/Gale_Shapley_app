@@ -170,42 +170,54 @@ def prefs_html(men_prefs, women_prefs):
     )
 
 
-def match_html(title, match, color):
+def match_html(title, match, color, women_first=False):
+    if women_first:                             #  📌  nuevo
+        inv   = {w: m for m, w in match.items()}
+        pairs = [(w, inv[w]) for w in sorted(inv)]          # mujer-primero
+    else:
+        pairs = sorted(match.items())                       # hombre-primero
+
     rows = "".join(
-        f"<tr><td>{m}</td><td style='color:{color};font-weight:bold'>{w}</td></tr>"
-        for m, w in match.items()
+        f"<tr><td>{a}</td><td style='color:{color};font-weight:bold'>{b}</td></tr>"
+        for a, b in pairs
     )
     table = (
-        "<table border='1' style='margin:0 auto;display:inline-block'>"
-        "<tr><th>Hombre</th><th>Mujer</th></tr>"
-        f"{rows}</table>"
+        "<table border='1' style='display:inline-table;margin:auto'>"
+        "<tr><th>Mujer</th><th>Hombre</th></tr>" if women_first
+        else "<tr><th>Hombre</th><th>Mujer</th></tr>"
+    ) + rows + "</table>"
+    return (
+        "<div><h4>{}</h4>{}</div>".format(title, table)
     )
-    return _center_wrapper(f"<div><h4>{title}</h4>{table}</div>")
 
-
-def extreme_matchings_html(lab_M, M, lab_W, W):
-    return _center_wrapper(
-        match_html(f'Proponen mujeres ({lab_W})', W, '#e76f51')
-        + match_html(f'Proponen hombres ({lab_M})', M, '#2a9d8f')
+def extreme_matchings_html(label_m, M, label_w, W):
+    return (
+        "<div style='display:flex;gap:40px;justify-content:center'>"
+        + match_html(f'Proponen mujeres ({label_w})', W, '#e76f51', women_first=True)
+        + match_html(f'Proponen hombres ({label_m})', M, '#2a9d8f', women_first=True)
+        + "</div>"
     )
 
 
 def stable_table_html(labeled):
-    header = (
-        "<tr><th>Etiqueta</th><th>Configuración</th>"
-        "<th>Nostalgia hombres</th><th>Nostalgia mujeres</th><th>Nostalgia total</th></tr>"
-    )
+    header = ("<tr><th>Etiqueta</th><th>Configuración</th>"
+              "<th>Nostalgia hombres</th><th>Nostalgia mujeres</th>"
+              "<th>Nostalgia total</th></tr>")
     rows = ""
     for lbl, match, (nh, nm, nt) in labeled:
-        couples = ", ".join(f"{m}-{w}" for m, w in match.items())
+        inv = {w: m for m, w in match.items()}                 # mujer-hombre
+        couples = ", ".join(f"{w}-{inv[w]}" for w in sorted(inv))
         rows += f"<tr><td>{lbl}</td><td>{couples}</td><td>{nh}</td><td>{nm}</td><td>{nt}</td></tr>"
 
     table = (
-        f"<table border='1' style='margin:0 auto;display:inline-block'>{header}{rows}</table>"
+        f"<table border='1' style='display:inline-table;margin:auto'>{header}{rows}</table>"
     )
-    return _center_wrapper(
-        f"<div><h3>Configuraciones estables (ordenados por nostalgia femenina)</h3>{table}</div>"
-    )
+
+    #            👇  ahora inline-block + texto centrado
+    inner = f"<div style='display:inline-block;text-align:center'>" \
+            f"<h3>Configuraciones estables (ordenados por nostalgia femenina)</h3>{table}</div>"
+
+    return _center_wrapper(inner)
 
 
 def lattice_table_html(title, letters, table_dict):
