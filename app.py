@@ -16,5 +16,8 @@ with gr.Blocks() as demo:
     out_html = gr.HTML()
     btn.click(simulate, inputs=[n_drop, mode_drop], outputs=out_html)
 
-if __name__ == "__main__":
-    demo.launch()
+# if __name__ == "__main__":
+#     demo.launch()
+    if __name__ == "__main__":
+        port = int(os.environ.get("PORT", 7860))
+        demo.launch(server_name="0.0.0.0", server_port=port)
