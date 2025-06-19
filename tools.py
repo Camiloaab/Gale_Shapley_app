@@ -255,12 +255,22 @@ except Exception:  # sin graphviz
     _HAS_GV = False
 
 
-def lattice_diagram_svg(letters, leq, title="Lattice de configuraciones estables"):
+def lattice_diagram_svg(letters, leq, labeled, title="Lattice de configuraciones estables"):
     G = nx.DiGraph()
     G.add_nodes_from(letters)
     G.add_edges_from(hasse_edges(letters, leq))
 
-    pos = graphviz_layout(G, prog="dot") if _HAS_GV else nx.spring_layout(G, seed=0, k=1/len(G))
+    #pos = graphviz_layout(G, prog="dot") if _HAS_GV else nx.spring_layout(G, seed=0, k=1/len(G))
+    # pos = nx.multipartite_layout(G, subset_key=lambda x: x.count('A'))  # optional tweak
+   # Map label → nostalgia of men
+    regret_map = {lbl: r[0] for lbl, _, r in labeled}  # labeled must be passed in!
+
+    # Assign horizontal positions (evenly spaced)
+    x_pos = {lbl: i for i, lbl in enumerate(sorted(letters))}
+
+    # Assign vertical positions using men's regret (inverted so high regret is lower)
+    pos = {lbl: (x_pos[lbl], -regret_map[lbl]) for lbl in letters}
+
 
     fig, ax = plt.subplots(figsize=(6, 4), dpi=120)
     nx.draw_networkx_nodes(G, pos, node_color="#90caf9", node_size=700, ax=ax)
@@ -309,7 +319,7 @@ def simulate(n, mode):
 
     leq = {(a, b): leq_men(matches[a], matches[b], men_prefs)
            for a in letters for b in letters}
-    parts.append(lattice_diagram_svg(letters, leq))
+    parts.append(lattice_diagram_svg(letters, leq, labeled))
 
     # juntar todo (no hace falta wrapper extra: cada bloque ya está centrado)
     return "<br/>".join(parts)
