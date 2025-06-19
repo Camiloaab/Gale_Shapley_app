@@ -1,6 +1,7 @@
 
 import gradio as gr
 from tools import simulate
+import os
 
 with gr.Blocks() as demo:
     gr.Image("image.png", show_label=False, show_download_button=False,
