@@ -159,7 +159,8 @@ def simulate(n, mode):
 
 # ---------- Interfaz ----------
 with gr.Blocks() as demo:
-    gr.Image("image.png", show_label=False, height=480)
+    gr.Image("image.png", show_label=False, height=280)
+ 
     with gr.Row():
         n_drop = gr.Dropdown(list(range(3, 11)), label="Número de parejas (N)", value=4)
         mode_drop = gr.Dropdown(
