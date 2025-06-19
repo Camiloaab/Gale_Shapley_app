@@ -83,8 +83,8 @@ def generate_prefs(n, mode):
 #  Métrica de “nostalgia” (regret)
 # --------------------------------------------------
 def calc_nostalgia(match, men_prefs, women_prefs):
-    men_r   = sum(men_prefs[m].index(w)+1   for m, w in match.items())
-    women_r = sum(women_prefs[w].index(m)+1 for m, w in match.items())
+    men_r   = sum(men_prefs[m].index(w)   for m, w in match.items())
+    women_r = sum(women_prefs[w].index(m) for m, w in match.items())
     return men_r, women_r, men_r + women_r
 
 # --------------------------------------------------
