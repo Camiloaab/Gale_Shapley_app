@@ -39,7 +39,7 @@ def generate_prefs(n, mode):
         for m in men:   men_prefs[m]   = random.sample(women, n)
         for w in women: women_prefs[w] = random.sample(men,   n)
 
-    elif mode == "Soulmates":
+    elif mode == "Utopía":
         parejas = random.sample(women, n)
         for m, w in zip(men, parejas):
             men_prefs[m]   = [w] + random.sample([x for x in women if x != w], n-1)
@@ -47,7 +47,7 @@ def generate_prefs(n, mode):
         for w in women:
             women_prefs.setdefault(w, random.sample(men, n))
 
-    elif mode == "Objective Ranking":
+    elif mode == "Distopía":
         orden_w = random.sample(women, n)
         orden_m = random.sample(men,   n)
         for m in men:   men_prefs[m]   = orden_w[:]
@@ -159,11 +159,11 @@ def simulate(n, mode):
 
 # ---------- Interfaz ----------
 with gr.Blocks() as demo:
-    gr.Image("image.png", show_label=False, height=180)
+    gr.Image("image.png", show_label=False, height=480)
     with gr.Row():
         n_drop = gr.Dropdown(list(range(3, 11)), label="Número de parejas (N)", value=4)
         mode_drop = gr.Dropdown(
-            ["Random", "Soulmates", "Objective Ranking"],
+            ["Random", "Utopía", "Distopía"],
             label="Tipo de preferencias",
             value="Random",
         )
