@@ -255,19 +255,77 @@ try:
 except Exception:  # sin graphviz
     _HAS_GV = False
 
+def rank_layers(G: nx.DiGraph):
+    """Return a dict node → rank (0 for minima)."""
+    rank = {}
+    # topological order guarantees we meet predecessors first
+    for v in nx.topological_sort(G):
+        preds = list(G.predecessors(v))
+        rank[v] = 0 if not preds else 1 + max(rank[p] for p in preds)
+    return rank
+def buckets_by_rank(rank):
+    layers = defaultdict(list)
+    for v, r in rank.items():
+        layers[r].append(v)
+    return [layers[k] for k in sorted(layers)]
 
+def barycentric_sort(G, layers, up=True):
+    """
+    One sweep (upwards or downwards) of the barycentre heuristic.
+    Returns a new `layers` list with reordered nodes.
+    """
+    new_layers = [list(layer) for layer in layers]
+
+    rng = range(1, len(layers)) if up else range(len(layers)-2, -1, -1)
+    for i in rng:
+        this = new_layers[i]
+        ref  = new_layers[i-1] if up else new_layers[i+1]
+
+        pos_ref = {v: j for j, v in enumerate(ref)}
+        this.sort(key=lambda v: (
+            sum(pos_ref.get(n, 0) for n in (G.predecessors(v) if up else G.successors(v)))
+            / max(1, len(list(G.predecessors(v) if up else G.successors(v))))
+        ))
+    return new_layers
+def order_layers(G, layers, n_sweeps=3):
+    for _ in range(n_sweeps):
+        layers = barycentric_sort(G, layers, up=True)
+        layers = barycentric_sort(G, layers, up=False)
+    return layers
+def coordinates(layers, v_gap=1.8, h_gap=1.6):
+    """
+    layers  : list[list[node]]
+    returns : dict node → (x, y)
+    """
+    pos = {}
+    for level, layer in enumerate(layers):
+        n = len(layer)
+        # centre layer around 0:  e.g., 3 nodes → [-1, 0, +1]
+        xs = [(i - (n-1)/2)*h_gap for i in range(n)]
+        y  = -level * v_gap       # lower rank = higher y
+        for x, v in zip(xs, layer):
+            pos[v] = (x, y)
+    return pos
+
+
+def hasse_layout(G):
+    """
+    G must be a DAG containing only the Hasse edges.
+    Returns: pos dict suitable for nx.draw_*
+    """
+    rank   = rank_layers(G)
+    layers = buckets_by_rank(rank)
+    layers = order_layers(G, layers)
+    return coordinates(layers)
 def lattice_diagram_svg(letters, leq, labeled, title="Lattice de configuraciones estables"):
     G = nx.DiGraph()
     G.add_nodes_from(letters)
     G.add_edges_from(hasse_edges(letters, leq))
 
-   # Group labels by men's regret
-    regret_map = {lbl: r[0] for lbl, _, r in labeled}
-     # Assign horizontal positions (evenly spaced)
-    x_pos = {lbl: i for i, lbl in enumerate(sorted(letters))}
+   
 
     # Assign vertical positions using men's regret (inverted so high regret is lower)
-    pos = {lbl: (x_pos[lbl], -regret_map[lbl]) for lbl in letters}
+    pos = hasse_layout(G)
 
     fig, ax = plt.subplots(figsize=(6, 4), dpi=120)
     nx.draw_networkx_nodes(G, pos, node_color="#90caf9", node_size=700, ax=ax)
