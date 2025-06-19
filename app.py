@@ -159,16 +159,16 @@ def simulate(n, mode):
 
 # ---------- Interfaz ----------
 with gr.Blocks() as demo:
-    gr.Image("image.png", show_label=False, height=280)
+    gr.Image("image.png", show_label=False,show_download_button=False,show_fullscreen_button=False, height=380)
  
     with gr.Row():
-        n_drop = gr.Dropdown(list(range(3, 11)), label="Número de parejas (N)", value=4)
+        n_drop = gr.Dropdown(list(range(3, 11)), label="Número de parejas ", value=4)
         mode_drop = gr.Dropdown(
             ["Random", "Utopía", "Distopía"],
             label="Tipo de preferencias",
             value="Random",
         )
-        btn = gr.Button("Jugar ▶️", variant="primary")
+        btn = gr.Button("Play", variant="primary")
     out_html = gr.HTML()
     btn.click(simulate, inputs=[n_drop, mode_drop], outputs=out_html)
 
